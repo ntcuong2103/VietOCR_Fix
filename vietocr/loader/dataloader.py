@@ -15,9 +15,9 @@ from tqdm import tqdm
 
 from torch.utils.data import Dataset
 from torch.utils.data.sampler import Sampler
-from vietocr.tool.translate import process_image
-from vietocr.tool.create_dataset import createDataset
-from vietocr.tool.translate import resize
+from tool.translate import process_image
+from tool.create_dataset import createDataset
+from tool.translate import resize
 
 class OCRDataset(Dataset):
     def __init__(self, lmdb_path, root_dir, annotation_path, vocab, image_height=32, image_min_width=32, image_max_width=512, transform=None):
@@ -64,6 +64,7 @@ class OCRDataset(Dataset):
         for i in pbar:
             bucket = self.get_bucket(i)
             self.cluster_indices[bucket].append(i)
+        return self.cluster_indices
 
     
     def get_bucket(self, idx):
@@ -131,7 +132,7 @@ class ClusterRandomSampler(Sampler):
 
     def __iter__(self):
         batch_lists = []
-        for cluster, cluster_indices in self.data_source.cluster_indices.items():
+        for cluster, cluster_indices in self.data_source.build_cluster_indices().items():
             if self.shuffle:
                 random.shuffle(cluster_indices)
 

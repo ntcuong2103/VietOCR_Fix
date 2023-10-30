@@ -4,9 +4,9 @@ import math
 from PIL import Image
 from torch.nn.functional import log_softmax, softmax
 
-from vietocr.model.transformerocr import VietOCR
-from vietocr.model.vocab import Vocab
-from vietocr.model.beam import Beam
+from model.transformerocr import VietOCR
+from model.vocab import Vocab
+from model.beam import Beam
 
 def batch_translate_beam_search(img, model, beam_size=4, candidates=1, max_seq_length=128, sos_token=1, eos_token=2):
     # img: NxCxHxW
@@ -16,11 +16,11 @@ def batch_translate_beam_search(img, model, beam_size=4, candidates=1, max_seq_l
 
     with torch.no_grad():
         src = model.cnn(img)
-        print(src.shap)
         memories = model.transformer.forward_encoder(src)
         for i in range(src.size(0)):
 #            memory = memories[:,i,:].repeat(1, beam_size, 1) # TxNxE
-            memory = model.transformer.get_memory(memories, i)
+            # memory = model.transformer.get_memory(memories, i)
+            memory = memories
             sent = beamsearch(memory, model, device, beam_size, candidates, max_seq_length, sos_token, eos_token)
             sents.append(sent)
 
@@ -169,4 +169,3 @@ def predict(filename, config):
     s = vocab.decode(s)
     
     return s
-

@@ -1,11 +1,12 @@
 import argparse
 
-from vietocr.model.trainer import Trainer
-from vietocr.tool.config import Cfg
+from model.trainer import Trainer
+from tool.config import Cfg
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', required=True, help='see example at ')
+
     parser.add_argument('--checkpoint', required=False, help='your checkpoint')
     
     args = parser.parse_args()
