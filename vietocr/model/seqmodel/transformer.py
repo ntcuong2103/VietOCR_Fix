@@ -8,7 +8,7 @@ from torch.nn.modules.transformer import TransformerDecoder
 class LanguageTransformer(nn.Module):
     def __init__(self, vocab_size, 
                  d_model, nhead, 
-                  num_decoder_layers, 
+                 num_decoder_layers, 
                  dim_feedforward, max_seq_length, 
                  pos_dropout, trans_dropout):
         super().__init__()
@@ -16,7 +16,7 @@ class LanguageTransformer(nn.Module):
         self.d_model = d_model
         self.embed_tgt = nn.Embedding(vocab_size, d_model)
         self.pos_enc = PositionalEncoding(d_model, pos_dropout, max_seq_length)
-        # self.learned_pos_enc = LearnedPositionalEncoding(d_model, pos_dropout, max_seq_length)
+        self.learned_pos_enc = LearnedPositionalEncoding(d_model, pos_dropout, max_seq_length)
 
         # self.transformer = nn.Transformer(d_model, nhead, 
         #                                   num_encoder_layers, num_decoder_layers, 
@@ -32,7 +32,7 @@ class LanguageTransformer(nn.Module):
         )  
         self.fc = nn.Linear(d_model, vocab_size)
         
-    def forward(self, src, tgt, src_key_padding_mask=None, tgt_key_padding_mask=None, memory_key_padding_mask=None):
+    def forward(self, src, tgt,  tgt_key_padding_mask=None, memory_key_padding_mask=None):
         """
         Shape:
             - src: (W, N, C)
@@ -84,7 +84,7 @@ class LanguageTransformer(nn.Module):
             memory=memory,
             tgt_mask=tgt_mask,
         )
-#        output = rearrange(output, 't n e -> n t e')
+
         output = output.transpose(0, 1)
 
         return self.fc(output), memory

@@ -1,24 +1,24 @@
-from optim.optim import ScheduledOptim
-from optim.labelsmoothingloss import LabelSmoothingLoss
+from vietocr.optim.optim import ScheduledOptim
+from vietocr.optim.labelsmoothingloss import LabelSmoothingLoss
 from torch.optim import Adam, SGD, AdamW
 from torch import nn
-from tool.translate import build_model
-from tool.translate import translate, batch_translate_beam_search, translate_beam_search
-# from tool.utils import download_weights
-from tool.logger import Logger
-from loader.aug import ImgAugTransform
+from vietocr.tool.translate import build_model
+from vietocr.tool.translate import translate, batch_translate_beam_search
+from vietocr.tool.utils import download_weights
+from vietocr.tool.logger import Logger
+from vietocr.loader.aug import ImgAugTransform
 
 import yaml
 import torch
-from loader.dataloader_v1 import DataGen
-from loader.dataloader import OCRDataset, ClusterRandomSampler, Collator
+from vietocr.loader.dataloader_v1 import DataGen
+from vietocr.loader.dataloader import OCRDataset, ClusterRandomSampler, Collator
 from torch.utils.data import DataLoader
 from einops import rearrange
 
 
 import torchvision 
 
-from tool.utils import compute_accuracy
+from vietocr.tool.utils import compute_accuracy
 from PIL import Image
 import numpy as np
 import os
@@ -150,8 +150,6 @@ class Trainer():
                 
                 del outputs
                 del loss
-                
-                
 
         total_loss = np.mean(total_loss)
         self.model.train()
@@ -167,11 +165,7 @@ class Trainer():
             batch = self.batch_to_device(batch)
 
             if self.beamsearch:
-                # translated_sentence = batch_translate_beam_search(batch['img'], self.model)
-                translated_sentence = []            
-                for img in batch['img']:
-                    translated_sentence.append(translate_beam_search(img.unsqueeze(0), self.model))
-                translated_sentence=np.stack(translated_sentence, axis=0)
+                translated_sentence = batch_translate_beam_search(batch['img'], self.model)
                 prob = None
             else:
                 translated_sentence, prob = translate(batch['img'], self.model)
@@ -186,7 +180,6 @@ class Trainer():
             
             if sample != None and len(pred_sents) > sample:
                 break
-            
 
         return pred_sents, actual_sents, img_files, prob
 
