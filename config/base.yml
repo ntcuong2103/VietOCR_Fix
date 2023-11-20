@@ -2,15 +2,15 @@
 vocab: 'aAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬbBcCdDđĐeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆfFgGhHiIìÌỉỈĩĨíÍïịỊjJkKlLmMnNoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢpPqQrRsStTuUùÙủỦũŨúÚụỤưƯừỪửỬữỮứỨựỰvVwWxXyYỳỲỷỶỹỸýÝỵỴzZ0123456789!"#$%&''()*+,-./:;<=>?@[\]^_`{|}~…“”– '
 
 # cpu, cuda, cuda:0
-device: cpu
+device: cuda
 
 seq_modeling: transformer
 transformer:  
     d_model: 256
-    nhead: 8
-    num_encoder_layers: 6
-    num_decoder_layers: 6
-    dim_feedforward: 2048
+    nhead: 4
+    # num_encoder_layers: 6
+    num_decoder_layers: 3
+    dim_feedforward: 1024
     max_seq_length: 1024
     pos_dropout: 0.1
     trans_dropout: 0.1
@@ -20,31 +20,32 @@ optimizer:
     pct_start: 0.1
 
 trainer:
-    batch_size: 32
-    print_every: 1
-    valid_every: 1
-    iters: 10
+    batch_size: 10
+    print_every: 5
+    valid_every: 50
+    iters: 500
     # where to save our model for prediction
     export: ./weights/transformerocr.pth
-    checkpoint: ./checkpoint/transformerocr_checkpoint.pth
+    checkpoint: weights/transformerocr.pth
+    # checkpoint: False
     log: ./train.log
-    # null to disable compuate accuracy, or change to number of sample to enable validiation while training
+    # null to disable compute accuracy, or change to number of sample to enable validiation while training
     metrics: null
 
 dataset:    
     # name of your dataset
     name: data
     # path to annotation and image
-    data_root: /home/thanh/data_d/phase2/github/vietocr/data_vietocr/data
-    train_annotation: /home/thanh/data_d/phase2/github/vietocr/data_vietocr/Labels_train.txt
-    valid_annotation: /home/thanh/data_d/phase2/github/vietocr/data_vietocr/Labels_val.txt
+    data_root: data/small/data
+    train_annotation: data/small/train.txt
+    valid_annotation: data/small/train.txt
     # resize image to 32 height, larger height will increase accuracy
     image_height: 32
     image_min_width: 32
     image_max_width: 1024
 
 dataloader:
-    num_workers: 0
+    num_workers: 5
     pin_memory: True
 
 aug:
@@ -55,9 +56,9 @@ predictor:
     # disable or enable beamsearch while prediction, use beamsearch will be slower
     beamsearch: False
 
-pretrain: https://vocr.vn/data/vietocr/vgg_transformer.pth
+# pretrain: https://vocr.vn/data/vietocr/vgg_transformer.pth
 
-weights: https://vocr.vn/data/vietocr/vgg_transformer.pth
+# weights: https://vocr.vn/data/vietocr/vgg_transformer.pth
 backbone: vgg19_bn
 cnn:
     pretrained: True

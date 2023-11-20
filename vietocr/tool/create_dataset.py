@@ -38,7 +38,7 @@ def createDataset(outputPath, root_dir, annotation_path):
         checkValid    : if true, check the validity of every image
     """
 
-    annotation_path = os.path.join(root_dir, annotation_path)
+    # annotation_path = os.path.join(root_dir, annotation_path)
     with open(annotation_path, 'r', encoding="utf-8") as ann_file:
         lines = ann_file.readlines()
         annotations = [l.strip().split('\t') for l in lines]

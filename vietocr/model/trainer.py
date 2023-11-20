@@ -61,9 +61,10 @@ class Trainer():
 
         self.iter = 0
         
-        self.optimizer = AdamW(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09)
+        self.optimizer = AdamW(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09, lr=1e-3)
 
-        self.criterion = LabelSmoothingLoss(len(self.vocab), padding_idx=self.vocab.pad, smoothing=0.1)
+        # self.criterion = LabelSmoothingLoss(len(self.vocab), padding_idx=self.vocab.pad, smoothing=0.1)
+        self.criterion = nn.NLLLoss(ignore_index=self.vocab.pad)
         
         transforms = None
         if self.image_aug:
@@ -82,7 +83,7 @@ class Trainer():
         
         total_loader_time = 0
         total_gpu_time = 0
-        best_acc = 0
+        best_acc = 100
 
         data_iter = iter(self.train_gen)
         for i in range(self.num_iters):
@@ -124,9 +125,10 @@ class Trainer():
                 print(info)
                 self.logger.log(info)
 
-                if acc_full_seq > best_acc:
+                if val_loss < best_acc:
                     self.save_weights(self.export_weights)
-                    best_acc = acc_full_seq
+                    print('saved')
+                    best_acc = val_loss
 
             
     def validate(self):
@@ -144,7 +146,7 @@ class Trainer():
                
                 outputs = outputs.flatten(0,1)
                 tgt_output = tgt_output.flatten()
-                loss = self.criterion(outputs, tgt_output)
+                loss = self.criterion(outputs.log_softmax(-1), tgt_output)
 
                 total_loss.append(loss.item())
                 
@@ -160,13 +162,13 @@ class Trainer():
         pred_sents = []
         actual_sents = []
         img_files = []
+        prob = None
 
         for batch in  self.valid_gen:
             batch = self.batch_to_device(batch)
 
             if self.beamsearch:
                 translated_sentence = batch_translate_beam_search(batch['img'], self.model)
-                prob = None
             else:
                 translated_sentence, prob = translate(batch['img'], self.model)
 
@@ -249,15 +251,15 @@ class Trainer():
     def load_checkpoint(self, filename):
         checkpoint = torch.load(filename)
         
-        optim = ScheduledOptim(
-	       Adam(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09),
-            	self.config['transformer']['d_model'], **self.config['optimizer'])
+        # optim = ScheduledOptim(
+	    #    Adam(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09),
+        #     	self.config['transformer']['d_model'], **self.config['optimizer'])
 
-        self.optimizer.load_state_dict(checkpoint['optimizer'])
+        # self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.model.load_state_dict(checkpoint['state_dict'])
-        self.iter = checkpoint['iter']
+        # self.iter = checkpoint['iter']
 
-        self.train_losses = checkpoint['train_losses']
+        # self.train_losses = checkpoint['train_losses']
 
     def save_checkpoint(self, filename):
         state = {'iter':self.iter, 'state_dict': self.model.state_dict(),
@@ -341,7 +343,7 @@ class Trainer():
         outputs = outputs.view(-1, outputs.size(2))#flatten(0, 1)
         tgt_output = tgt_output.view(-1)#flatten()
         
-        loss = self.criterion(outputs, tgt_output)
+        loss = self.criterion(outputs.log_softmax(-1), tgt_output)
 
         self.optimizer.zero_grad()
 
